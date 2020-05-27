@@ -1,55 +1,50 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import Equation from './Equation';
 
-const value1 = Math.floor(Math.random() * 100);
-const value2 = Math.floor(Math.random() * 100);
-const value3 = Math.floor(Math.random() * 100);
-const proposedAnswer = Math.floor(Math.random() * 3) + value1 + value2 + value3;
+
+// const value1 = Math.floor(Math.random() * 100);
+// const value2 = Math.floor(Math.random() * 100);
+// const value3 = Math.floor(Math.random() * 100);
+// const realAnswer = value1 + value2 + value3;
+// const proposedAnswer = Math.floor(Math.random() * 3) + value1 + value2 + value3;
 const numQuestions = 0;
 const numCorrect = 0;
 
 class App extends Component {
-  state = {
-	value1 : Math.floor(Math.random() * 100),
-    value2 : Math.floor(Math.random() * 100),
-    value3 : Math.floor(Math.random() * 100),
-    proposedAnswer: 0,
-    numCorrect: 0,
-    numQuestions: 0
+  state =  {
+    numQuestions: 0,
+    numCorrect: 0
   }
 
- onTrue(){
-	this.setState((prevState) => {
-      
-      return {
-      	value1 : Math.floor(Math.random() * 100),
-        value2 : Math.floor(Math.random() * 100),
-        value3 : Math.floor(Math.random() * 100),
-        proposedAnswer: 0,
-        numCorrect: prevState.numCorrect += 1,
-        numQuestions:  prevState.numQuestions += 1
-      }
-    
-	})
+  updateScore(result){
+    console.log(result)
+    console.log(this)
+    if(result){
+      this.setState( (prev) => ({
+        numCorrect : prev.numCorrect + 1
+      }))
+    }
 
-
- }
-
+    this.setState(prev => ({numQuestions: prev.numQuestions+1}))
+  }
+  
   render() {
     return (
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">ReactND - Coding Practice</h1>
-        </header>
+        </header> 
+        
+        {/* <Answer />
+        <Score /> */}
         <div className="game">
           <h2>Mental Math</h2>
-          <div className="equation">
-            <p className="text">{`${this.state.value1} + ${this.state.value2} + ${this.state.value3} = ${this.state.proposedAnswer}`}</p>
-          </div>
-          <button onClick = { () => this.onTrue()}>True</button>
-          <button>False</button>
+          <Equation updateScore={this.updateScore} />
+          
+          
           <p className="text">
             Your Score: {this.state.numCorrect}/{this.state.numQuestions}
           </p>
