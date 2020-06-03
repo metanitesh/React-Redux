@@ -1,14 +1,15 @@
 /* eslint-disable no-console */
+const ADD_TODO = 'ADD_TODO';
+const REMOVE_TODO = 'REMOVE_TODO';
+const ADD_GOAL = 'ADD_GOAL';
+const REMOVE_GOAL = 'REMOVE_GOAL';
+
 const createStore = (reducer) => {
-  let state = [{
-    name: 'Nitesh',
-  }];
+  let state = [];
 
   let listeners = [];
 
-  const getState = () => {
-    return state;
-  };
+  const getState = () => state;
 
   const subscribe = (fn) => {
     listeners.push(fn);
@@ -22,6 +23,7 @@ const createStore = (reducer) => {
 
   const dispatch = (event) => {
     state = reducer(state, event);
+    listeners.forEach((listener) => listener());
   };
 
   return {
@@ -32,83 +34,69 @@ const createStore = (reducer) => {
   };
 };
 
-const reducer = (state, event) => {
-  if (event.type === 'ADD') {
-    return state.concat(event.data);
+const todoReducer = (state = [], event) => {
+  switch (event.type) {
+    case ADD_TODO:
+      return state.concat(event.data);
+    case REMOVE_TODO:
+      return state.filter((item) => item.name !== event.data.name);
+    default:
+      return state;
   }
-  return state;
 };
 
+const goalReducer = (state = [], event) => {
+  switch (event.type) {
+    case ADD_GOAL:
+      return state.concat(event.data);
+    case REMOVE_GOAL:
+      return state.filter((item) => item.name !== event.data.name);
+    default:
+      return state;
+  }
+};
 
-const store = createStore(reducer);
+const indexReducer = (state = {}, event) => ({
+  todos: todoReducer(state.todos, event),
+  goals: goalReducer(state.goals, event),
+});
+
+const store = createStore(indexReducer);
 console.log(store.getState());
 
 store.subscribe(() => console.log('hello'));
 
-const event = {
-  type: 'ADD',
+const addTodoAction = (name) => ({
+  type: 'ADD_TODO',
   data: {
-    name: 'Tushar',
+    name,
   },
-};
+});
 
-store.dispatch(event);
-console.log(store.getState())
+const removeTodoAction = (name) => ({
+  type: 'REMOVE_TODO',
+  data: {
+    name,
+  },
+});
 
-
-// const createStore = () => {
-//   let state = {name: "nitesh"}
-//   let listeners = [];
-
-//   const getState = () => state;
-
-//   const subscribe = (callback) => {
-//     listeners.push(callback)
-//     return () => {
-//        listeners = listeners.filter(listner => listner !== callback)
-
-//       // console.log(listeners)
-
-//     }
-//   }
+const addGoalAction = (name) => ({
+  type: 'ADD_GOAL',
+  data: {
+    name,
+  },
+});
 
 
-//   const dispatch = (event) => {
-//    state = reducer(state, event)
-//    this.listeners.forEach( listner => listner())
-//   }
+const removeGoalAction = (name) => ({
+  type: 'REMOVE_GOAL',
+  data: {
+    name,
+  },
+});
 
-//   return {
-//     state,
-//     getState,
-//     subscribe,
-//     dispatch
-//   }
-// }
-
-// const store = createStore(reducer);
-
-// const event = {
-//   type : 'ADD_TODO',
-//   todo : {
-//     name: "Get the job"
-//   }
-// }
-
-// const reducer = (state=[], event) => {
-//   if(event.type == 'ADD_TODO'){
-//     return state.concat(event.todo)
-//   }
-//   return state
-// }
-
-
-
-// const unsubscribe = store.subscribe(() => console.log("hello"));
-// unsubscribe()
-// store.boradCast()
-
-// // console.log(store.getState())
-
-// reducer(store, eve)
-// var some = "sime";
+store.dispatch(addTodoAction('Nitesh'));
+store.dispatch(addTodoAction('Lin'));
+store.dispatch(addGoalAction('Akhil'));
+store.dispatch(removeTodoAction('Nitesh'));
+console.log(store.getState());
