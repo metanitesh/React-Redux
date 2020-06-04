@@ -4,20 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <script src="https://unpkg.com/react@16.3.0-alpha.1/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
 </head>
-<body>
-<h2>Todos</h2>
-<form class='.todo' >
-  <input type="text" name="add-todo" id="todo_input">
-  <button id="todo_button">add todo</button>
-</form>
-<ul id="todos">
-  
-</ul>
+<body >
+  <div id="app">
 
-<hr>
-
-<h2>Goals</h2>
+  </div>
 
 
 <!-- <script src="index.js"></script> -->
@@ -55,12 +49,27 @@ const goals = (state = [], event) => {
 //   goals: goalReducer(state.goals, event),
 // });
 
+const checker = (store) => (next) => (action) => {
+        if(action.type === ADD_TODO
+        && action.data.name.toLowerCase().includes('abuse')){
+        return alert("failed");
+        }else{
+          next(action)
+        }
+      }
 
-
+ const logger = (store) => (next) => (action) => {
+   console.table(action)
+      console.log(action)
+      console.log(store.getState());
+  
+   next(action)
+ }
+   
 const store = Redux.createStore(Redux.combineReducers({
   todos, 
   goals,
-}));
+}), Redux.applyMiddleware(checker, logger));
 console.log(store.getState());
 
 
@@ -108,19 +117,13 @@ store.subscribe(() => {
 </script>
 <script>
 
-  function checkAndDespatch(store, action){
-    if(action.type === ADD_TODO
-    && action.data.name.toLowerCase().includes('abuse')){
-      alert("failed");
-    }else{
-      store.dispatch(action);
-    }
-  }  
+  
+
 
   function addTodo(event){
     event.preventDefault();
     const value = document.getElementById('todo_input').value;
-    checkAndDespatch(store, addTodoAction(value))
+    store.dispatch(addTodoAction(value))
 
     // addTodotoDom(value);
   }
@@ -138,6 +141,56 @@ store.subscribe(() => {
 
   }
 
+</script>
+
+<script type="text/babel">
+  console.log(React)
+  class App extends React.Component{
+
+    state = {
+      value : '',
+      todos: []
+    }
+      
+    handleChange = (event) => {
+      const value = event.target.value;
+
+      this.setState({
+        value,
+      })
+    }
+
+    handleSubmit = (event) => {
+      event.preventDefault();
+      store.dispatch(addTodoAction(this.state.value));
+      const newState = store.getState();
+      console.log(newState)
+      this.setState({
+        todos: newState.todos
+      })
+    }
+
+    render(){
+      return (
+        <div>
+        <h2>Todos</h2>
+        <form className='.todo' onSubmit={this.handleSubmit}>
+          <input type="text" name="add-todo" id="todo_input" onChange={this.handleChange} value={this.state.value} />
+          <button id="todo_button ">add todo</button>
+        </form>
+        <ul id="todos">
+          
+        </ul>
+
+        <hr />
+
+        <h2>Goals</h2>
+        </div>
+      )
+    }
+  }
+
+  ReactDOM.render(<App />, document.getElementById("app"))
 </script>
 </body>
 </html>
