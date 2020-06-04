@@ -102,95 +102,58 @@ const removeGoalAction = (name) => ({
   },
 });
 
-// store.dispatch(addTodoAction('Nitesh'));
-// store.dispatch(addTodoAction('Lin'));
-// store.dispatch(addGoalAction('Akhil'));
-
-store.subscribe(() => {
-  document.getElementById('todos').innerHTML = '';
-  const { goals, todos }= store.getState();
-  todos.forEach((todo) => {
-    addTodotoDom(todo.name)
-  })
-})
-
-</script>
-<script>
-
-  
-
-
-  function addTodo(event){
-    event.preventDefault();
-    const value = document.getElementById('todo_input').value;
-    store.dispatch(addTodoAction(value))
-
-    // addTodotoDom(value);
-  }
-
-  document.getElementById("todo_button")
-          .addEventListener("click", addTodo);
-  
-  function addTodotoDom(todo){
-    const node = document.createElement('li');
-    const text = document.createTextNode(todo);
-    node.appendChild(text);
-
-    document.getElementById("todos")
-      .appendChild(node);
-
-  }
 
 </script>
 
 <script type="text/babel">
   console.log(React)
-  class App extends React.Component{
 
-    state = {
-      value : '',
-      todos: []
-    }
-      
-    handleChange = (event) => {
-      const value = event.target.value;
-
-      this.setState({
-        value,
-      })
-    }
+  class Todo extends React.Component{
 
     handleSubmit = (event) => {
       event.preventDefault();
-      store.dispatch(addTodoAction(this.state.value));
-      const newState = store.getState();
-      console.log(newState)
-      this.setState({
-        todos: newState.todos
-      })
+      this.props.store.dispatch(addTodoAction(this.input.value));      
     }
 
     render(){
+      const {todos} = this.props;
+      
       return (
         <div>
         <h2>Todos</h2>
-        <form className='.todo' onSubmit={this.handleSubmit}>
-          <input type="text" name="add-todo" id="todo_input" onChange={this.handleChange} value={this.state.value} />
-          <button id="todo_button ">add todo</button>
-        </form>
-        <ul id="todos">
-          
-        </ul>
+          <form className='.todo' onSubmit={this.handleSubmit}>
+            <input type="text" name="add-todo" id="todo_input" ref={(input) => this.input = input}  />
+            <button id="todo_button ">add todo</button>
+          </form>
+          <ul id="todos">
+            {todos.map(todo => <li key={todo.name}>{todo.name}</li>)}
+          </ul>
 
-        <hr />
+          <hr />
 
-        <h2>Goals</h2>
+          <h2>Goals</h2>
         </div>
       )
     }
   }
 
-  ReactDOM.render(<App />, document.getElementById("app"))
+  class App extends React.Component{
+
+    componentDidMount(){
+      store.subscribe(() => this.forceUpdate())
+    }
+
+    render(){
+      const {store} = this.props;
+      const {todos} = store.getState();
+    
+      return (
+        <Todo store={store} todos={todos}/>
+      )
+    }
+  }
+
+  ReactDOM.render(<App store={store}/>, document.getElementById("app"))
 </script>
 </body>
 </html>
