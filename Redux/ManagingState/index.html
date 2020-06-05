@@ -7,6 +7,7 @@
   <script src="https://unpkg.com/react@16.3.0-alpha.1/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+  <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
 </head>
 <body >
   <div id="app">
@@ -21,6 +22,9 @@ const ADD_TODO = 'ADD_TODO';
 const REMOVE_TODO = 'REMOVE_TODO';
 const ADD_GOAL = 'ADD_GOAL';
 const REMOVE_GOAL = 'REMOVE_GOAL';
+const RECEIVE_DATA = "RECEIVE_DATA"
+const LOADING_TRUE = "LOADING_TRUE"
+const LOADING_FALSE = "LOADING_FALSE"
 
 const todos = (state = [], event) => {
   switch (event.type) {
@@ -28,6 +32,11 @@ const todos = (state = [], event) => {
       return state.concat(event.data);
     case REMOVE_TODO:
       return state.filter((item) => item.name !== event.data.name);
+    
+    case RECEIVE_DATA:
+      console.log(event)
+      return event.data.todos  
+
     default:
       return state;
   }
@@ -39,10 +48,24 @@ const goals = (state = [], event) => {
       return state.concat(event.data);
     case REMOVE_GOAL:
       return state.filter((item) => item.name !== event.data.name);
+    case RECEIVE_DATA:
+      return event.data.goals
     default:
       return state;
   }
 };
+
+  const loading = (state = [], event) => {
+    switch(event.type){
+      case LOADING_TRUE:
+        return true;
+      case LOADING_FALSE:
+        return false;
+      default:
+        return true;
+
+    }
+  }
 
 // const indexReducer = (state = {}, event) => ({
 //   todos: todoReducer(state.todos, event),
@@ -69,6 +92,7 @@ const checker = (store) => (next) => (action) => {
 const store = Redux.createStore(Redux.combineReducers({
   todos, 
   goals,
+  loading
 }), Redux.applyMiddleware(checker, logger));
 console.log(store.getState());
 
@@ -102,6 +126,23 @@ const removeGoalAction = (name) => ({
   },
 });
 
+const receiveDataAction = (todos, goals) => ({
+  type: 'RECEIVE_DATA',
+  data: {
+    todos,
+    goals,
+  }
+})
+
+
+const loadingTrueAction = () => ({
+  type: LOADING_TRUE
+})
+
+const loadingFalseAction = () => ({
+  type: LOADING_FALSE
+})
+
 
 </script>
 
@@ -111,8 +152,9 @@ const removeGoalAction = (name) => ({
   class Todo extends React.Component{
 
     handleSubmit = (event) => {
+      this.set(state)
       event.preventDefault();
-      this.props.store.dispatch(addTodoAction(this.input.value));      
+      this.props.store.dispatch(addTodoAction(this.input.value));
     }
 
     render(){
@@ -125,7 +167,9 @@ const removeGoalAction = (name) => ({
             <input type="text" name="add-todo" id="todo_input" ref={(input) => this.input = input}  />
             <button id="todo_button ">add todo</button>
           </form>
+          
           <ul id="todos">
+            {this.props.loading && "yes"}
             {todos.map(todo => <li key={todo.name}>{todo.name}</li>)}
           </ul>
 
@@ -140,15 +184,24 @@ const removeGoalAction = (name) => ({
   class App extends React.Component{
 
     componentDidMount(){
+      this.props.store.dispatch(loadingTrueAction())
+      Promise.all([API.fetchTodos(), API.fetchGoals()])
+      .then( ([todos, goals]) => {
+        this.props.store.dispatch(receiveDataAction(todos, goals));
+        this.props.store.dispatch(loadingFalseAction())
+      })
+      // API.fetchTodos()
+      //   .then(data => console.log(data));
       store.subscribe(() => this.forceUpdate())
     }
 
     render(){
       const {store} = this.props;
-      const {todos} = store.getState();
+      const {todos, loading} = store.getState();
+      
     
       return (
-        <Todo store={store} todos={todos}/>
+        <Todo store={store} loading={loading} todos={todos}/>
       )
     }
   }
