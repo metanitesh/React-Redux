@@ -227,7 +227,39 @@ const addTodoActionApi = (name) => {
     }
   }
 
-  ReactDOM.render(<App store={store}/>, document.getElementById("app"))
+
+  const Context = React.createContext()
+
+  class Provider extends React.Component{
+
+    render(){
+      return(
+        <Context.Provider value={this.props.store}>
+          {this.props.children}
+        </Context.Provider>
+      )
+    }
+      
+    
+  }
+
+  class ConnectedComponent extends React.Component{
+    render(){
+      return(
+        <Context.Consumer>
+          {(store) => {
+            return <App store={store} />
+          }}  
+        </Context.Consumer>
+      )
+    }
+  }
+
+  ReactDOM.render(
+    <Provider store={store}>
+      <ConnectedComponent />
+    </Provider>
+    , document.getElementById("app"))
 
   console.log(ReduxThunk.default)
 </script>
