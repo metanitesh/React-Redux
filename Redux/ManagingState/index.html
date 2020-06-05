@@ -173,8 +173,8 @@ const addTodoActionApi = (name) => {
     }
 
     render(){
-      const {todos} = this.props;
-      
+      const {todos, loading} = this.props;
+      console.log("----",todos)
       return (
         <div>
         <h2>Todos</h2>
@@ -195,6 +195,70 @@ const addTodoActionApi = (name) => {
       )
     }
   }
+
+  class ConnectedTodo extends React.Component{
+
+    render(){
+      return (
+        <Context.Consumer>
+          {(store) => {
+            return <Todo store={store}/>
+          }}
+        </Context.Consumer>
+      )
+     
+    }
+  }
+
+  function connect (stateToProps){
+    return (Component) => {
+
+      class Receiver extends React.Component{
+
+        componentDidMount(){
+          const {subscribe} = this.props.store;
+
+          this.unsubscribe = subscribe(()=> {
+            this.forceUpdate()
+          })
+
+        }
+
+        componentWillUnmount(){
+          this.unsubscribe();
+        }
+
+        render(){
+          const {store} = this.props;
+          const state = store.getState();
+          const states = stateToProps(state);
+          console.log("states",states)
+
+          return (<Component {...states} dispatch={store.dispatch}/>)
+        }
+
+      }
+
+      class ConnectedComponent extends React.Component{
+        render(){
+          return (
+            <Context.Consumer>
+               {(store) => <Receiver store={store}/>} 
+            </Context.Consumer>
+          )
+        }
+      }
+
+      return ConnectedComponent
+    }
+  }
+
+  const ConnectedTodoComponent = connect(state => ({
+    todos:state.todos,
+   loading:state.loading
+  }))(Todo)
+
+
 
   class App extends React.Component{
 
@@ -217,12 +281,8 @@ const addTodoActionApi = (name) => {
     }
 
     render(){
-      const {store} = this.props;
-      const {todos, loading} = store.getState();
-      
-    
       return (
-        <Todo store={store} loading={loading} todos={todos}/>
+        <ConnectedTodoComponent />
       )
     }
   }
