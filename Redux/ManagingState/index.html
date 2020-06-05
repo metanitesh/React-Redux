@@ -8,6 +8,7 @@
   <script src="https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
   <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
+  <script src="https://unpkg.com/redux-thunk@2.2.0/dist/redux-thunk.min.js"></script>
 </head>
 <body >
   <div id="app">
@@ -62,7 +63,7 @@ const goals = (state = [], event) => {
       case LOADING_FALSE:
         return false;
       default:
-        return true;
+        return false;
 
     }
   }
@@ -82,7 +83,7 @@ const checker = (store) => (next) => (action) => {
       }
 
  const logger = (store) => (next) => (action) => {
-   console.table(action)
+    
       console.log(action)
       console.log(store.getState());
   
@@ -93,7 +94,7 @@ const store = Redux.createStore(Redux.combineReducers({
   todos, 
   goals,
   loading
-}), Redux.applyMiddleware(checker, logger));
+}), Redux.applyMiddleware( ReduxThunk.default, checker, logger));
 console.log(store.getState());
 
 
@@ -143,6 +144,21 @@ const loadingFalseAction = () => ({
   type: LOADING_FALSE
 })
 
+const addTodoActionApi = (name) => {
+  console.log("heloo=========")
+  return (dispatch) => {
+    dispatch(addTodoAction(name));
+      return API.saveTodo(name)
+      .then((data)=> [
+        console.log("success")
+      ])
+      .catch(()=> {
+        console.log("fail")
+        dispatch(removeTodoAction(name));
+      })
+  }
+
+}
 
 </script>
 
@@ -152,9 +168,8 @@ const loadingFalseAction = () => ({
   class Todo extends React.Component{
 
     handleSubmit = (event) => {
-      this.set(state)
       event.preventDefault();
-      this.props.store.dispatch(addTodoAction(this.input.value));
+      this.props.store.dispatch(addTodoActionApi(this.input.value))
     }
 
     render(){
@@ -169,7 +184,7 @@ const loadingFalseAction = () => ({
           </form>
           
           <ul id="todos">
-            {this.props.loading && "yes"}
+            {this.props.loading && "loading"}
             {todos.map(todo => <li key={todo.name}>{todo.name}</li>)}
           </ul>
 
@@ -184,6 +199,12 @@ const loadingFalseAction = () => ({
   class App extends React.Component{
 
     componentDidMount(){
+      store.subscribe(() => {
+        this.forceUpdate()
+        console.log("get state", store.getState())
+      })
+
+
       this.props.store.dispatch(loadingTrueAction())
       Promise.all([API.fetchTodos(), API.fetchGoals()])
       .then( ([todos, goals]) => {
@@ -192,7 +213,7 @@ const loadingFalseAction = () => ({
       })
       // API.fetchTodos()
       //   .then(data => console.log(data));
-      store.subscribe(() => this.forceUpdate())
+      
     }
 
     render(){
@@ -207,6 +228,8 @@ const loadingFalseAction = () => ({
   }
 
   ReactDOM.render(<App store={store}/>, document.getElementById("app"))
+
+  console.log(ReduxThunk.default)
 </script>
 </body>
 </html>
