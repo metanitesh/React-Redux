@@ -1,4 +1,4 @@
-import {getInitialData} from './../utils/api';
+import {getInitialData} from '../utils/api';
 import {receiveTweets} from './tweets';
 import {receiveUsers} from './users';
 import {setAuthUser} from './auth';
